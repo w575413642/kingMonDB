@@ -29,19 +29,105 @@
       <el-input placeholder="输入关键字进行过滤" v-model="filterText" style="margin-bottom: 12px; width: 350px;">
         <el-button type="primary" @click="searchsDom">点击搜索</el-button>
       </el-input>
-      <el-tree ref="trees" default-expand-all :filter-node-method="filterNode" :data="tableData" :load="loadNode" lazy show-checkbox>
-        <span style="height: 40px;" class="custom-tree-node" slot-scope="{ node, data }">
-          <span style="line-height: 40px;">{{ node.label }}</span>
-          <span>
-            <el-button size="mini" type="text" style="margin-left: 12px;" @click="() => append(data)">
-              增加
-            </el-button>
-            <el-button type="text" size="mini" @click="() => deletDom(data)">
-              删除
-            </el-button>
-          </span>
-        </span>
-      </el-tree>
+      <!-- 权限显示 -->
+      <el-table :data="tableData" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">
+        <el-table-column class-name="status-col" label="权限ID" width="110">
+          <template slot-scope="scope">
+            <span>{{scope.row.id}}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column class-name="status-col" label="权限名称" width="210">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.name"></el-input>
+            </template>
+            <span v-else>{{scope.row.name}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column class-name="status-col" label="permCode" width="110">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.permCode"></el-input>
+            </template>
+            <span v-else>{{scope.row.permCode}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column class-name="status-col" label="type" width="110">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.type"></el-input>
+            </template>
+            <span v-else>{{scope.row.type}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column class-name="status-col" label="权限地址" width="110">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.url"></el-input>
+            </template>
+            <span v-else>{{scope.row.url}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column class-name="status-col" label="权限所属" width="110">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-select class="kingMon-right" v-model="searchs.appKey" clearable style="width: 100%;" placeholder="选择App类型">
+                <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
+                </el-option>
+              </el-select>
+            </template>
+            <span v-else>{{scope.row.appName}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column class-name="status-col" label="权限状态" width="110">
+          <template slot-scope="scope">
+            <div v-if="!scope.row.edit">
+              <el-tag v-if="scope.row.status == 1">开启</el-tag>
+              <el-tag v-else type="danger">关闭</el-tag>
+            </div>
+            <el-switch v-else v-model="scope.row.switch"></el-switch>
+          </template>
+        </el-table-column>
+
+        <el-table-column min-width="50px" label="权限描述">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.description"></el-input>
+            </template>
+            <span v-else>{{ scope.row.description }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column min-width="50px" label="isCommon">
+          <template slot-scope="scope">
+            <div v-if="!scope.row.edit">
+              <el-tag v-if="scope.row.isCommon == true">开启</el-tag>
+              <el-tag v-else type="danger">关闭</el-tag>
+            </div>
+            <el-switch v-else v-model="scope.row.isCommon"></el-switch>
+          </template>
+        </el-table-column>
+
+        <el-table-column min-width="50px" label="moduleId">
+          <template slot-scope="scope">
+            <template v-if="scope.row.edit">
+              <el-input size="small" v-model="scope.row.moduleId"></el-input>
+            </template>
+            <span v-else>{{ scope.row.moduleId }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column align="center" label="Actions" width="300">
+          <template slot-scope="scope">
+            <el-button v-if="scope.row.edit" type="success" @click="confirmEdit(scope.row)" size="small" icon="el-icon-circle-check-outline">确认</el-button>
+            <el-button v-if="scope.row.edit" type="danger" @click="confirmDel(scope.row)" size="small" icon="el-icon-circle-check-outline">删除</el-button>
+            <el-button v-if="scope.row.edit" size="small" icon="el-icon-refresh" type="warning" @click="cancelEdit(scope.row)">取消</el-button>
+            <el-button v-else type="primary" @click='scope.row.edit=!scope.row.edit' size="small" icon="el-icon-edit">编辑</el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
       <!-- <el-input size="small" class="kingMon-right" v-model="searchs.name" style="width: 200px;height: 35px;" placeholder="输入AppKey查询"></el-input> -->
       <!-- <el-select class="kingMon-right" v-model="searchFrom.rules" clearable style="width: 90px" placeholder="选择顺序">
         <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
@@ -54,12 +140,7 @@
       <!-- <el-button class="kingMon-right" type="primary" icon="el-icon-search" @click="searchApp">搜索</el-button> -->
       <!-- 左侧选择最高权限 -->
 
-      <!-- 图表操作 -->
-      <el-checkbox-group v-model="checkboxVal">
-        <!-- <el-checkbox label="apple">apple</el-checkbox>
-        <el-checkbox label="banana">banana</el-checkbox>
-        <el-checkbox label="orange">orange</el-checkbox> -->
-      </el-checkbox-group>
+
     </div>
   </div>
 </template>
@@ -76,7 +157,7 @@
     data() {
       return {
         // 节点查询
-        filterText: "",
+        options: "",
         // 代理节点
         testss: {},
         defaultProps: {
@@ -121,7 +202,7 @@
     },
 
     methods: {
-      searchsDom (){
+      searchsDom() {
 
       },
       // 节点内查找
@@ -174,28 +255,7 @@
           this.upApp()
         }).catch(() => {})
       },
-      // 循环加载节点
-      loadNode(node, resolve) {
-        console.log(node)
-        this.$store.dispatch('loadMorex', {
-          id: (node.data.length == 0 ? 1 : node.data.id),
-        }).then(() => {
-          // this.addDataLists(val)
-          let nodes = this.$store.state.sysOrg.Nows.map(row => {
-            return {
-              id: row.id,
-              label: row.name,
-              parentId: row.parentId
-            }
-          })
-          this.listLoading = false
-          if (node.level === 0) {
-            return resolve();
-          } else {
-            return resolve(nodes);
-          }
-        }).catch(() => {})
-      },
+
       // 下级查询
       moreTrees(val) {
         return
@@ -248,15 +308,25 @@
         //     }
         //   }
         // })
-        console.log(this.tableData)
       },
       // 查询所有权限
       upApp() {
         this.listLoading = true;
-        this.$store.dispatch('loadChildSysOrg', {
-          id: -1,
+        this.$store.dispatch('loadAuthPermissionList', {
+          params: 1,
         }).then(() => {
           this.updataLists()
+          this.$store.dispatch('loadAuthAppList', 1).then(() => {
+            this.options = this.$store.state.roles.AppList.map(view => {
+              return {
+                value: view.appKey,
+                label: view.name
+              }
+            })
+            this.listLoading = false
+          }).catch(() => {
+            alert("error")
+          })
           this.listLoading = false
         }).catch(() => {})
       },
@@ -333,14 +403,11 @@
       },
       // 修改
       confirmEdit(row) {
+        console.log(row)
         // 编辑App内容
-        this.$store.dispatch('updateRole', {
-          id: row.id,
-          status: (row.switch ? 1 : 2),
-          appKey: row.appKey,
-          roleCode: row.roleCode,
-          name: row.name,
-          description: row.description
+        this.$store.dispatch('updatePermission', {
+          ...row,
+          status: (row.switch ? 1 : 2)
         }).then(() => {
           // 编辑完成后关闭选项卡并提示
           row.edit = false
@@ -351,19 +418,19 @@
           })
           this.upApp()
         }).catch(() => {
-          alert("error")
+          this.upApp()
         })
-
       },
       // 循环更新列表
       updataLists() {
-        this.tableData = this.$store.state.sysOrg.Org.map(row => {
+        this.tableData = this.$store.state.PermissionRoles.Permission.map(row => {
           return {
-            id: row.id,
-            label: row.name
+            ...row,
+            edit: false,
+            switch: (row.status == 1 ? true : false)
           }
         })
-        console.log(this.tableData, "当前Table-----------------------")
+        console.log(this.tableData)
       },
       // 查询
       pullData() {

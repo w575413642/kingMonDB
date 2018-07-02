@@ -10,6 +10,7 @@ import modules from './modules/modules'
 import userRoles from './modules/userRoles'
 import userManager from './modules/userManager'
 import sysOrg from './modules/sysOrg'
+import PermissionRoles from './modules/PermissionRoles'
 import getters from './getters'
 
 Vue.use(Vuex)
@@ -25,7 +26,8 @@ const store = new Vuex.Store({
     modules,
     userRoles,
     userManager,
-    sysOrg
+    sysOrg,
+    PermissionRoles
   },
   getters
 })
