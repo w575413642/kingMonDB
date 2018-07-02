@@ -24,17 +24,6 @@ export function SearchAuthApps(params) {
   })
 }
 
-// 获取所有APP权限
-export function loadAuthAppLists(params) {
-  const data = requestMethod({
-    params
-  })
-  return request({
-    url: 'auth/authApp/loadAuthAppList',
-    method: 'POST',
-    data
-  })
-}
 // 修改权限信息
 export function updateRoles(params) {
   const data = requestMethod({
